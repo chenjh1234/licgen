@@ -24,26 +24,25 @@ void PackageWin::init()
    // table:
         QString str;
         QStringList liststr;
-        model = new QStandardItemModel(4,3);
-        liststr << "type" << "name" << "value";
+        model = new QStandardItemModel(4,8);
+        liststr << "name" << "version" << "type"<<"number" <<"start" << "end" << "key" << "pborrow";
         model->setHorizontalHeaderLabels(liststr);
         //horizontalHeader()->setStretchLastSection(true);
         dlg = new TableDlg();
-        tableView->setItemDelegateForColumn(0,dlg);
-       // str = "&table";
-        #define MAX_DEFINES 6
+        tableView->setItemDelegateForColumn(2,dlg);
+        #if 1
+        str = "task";
+        #define MAX_DEFINES 10
 
         for (int row = 0; row < MAX_DEFINES; ++row) 
         {
-            for (int column = 0; column < 1; ++column) 
-            {
-                 if(row == 3 ) str = "&define";
-                 else str= "&table";
+            int column = 2;  
+               
                  QModelIndex index = model->index(row, column, QModelIndex());
                  model->setData(index, QVariant(str));
-            }
+ 
         }
-
+#endif
         tableView->setModel(model);
 
 

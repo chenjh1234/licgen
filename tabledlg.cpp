@@ -15,8 +15,9 @@ QWidget *TableDlg::createEditor(QWidget *parent,
     //editor->setMinimum(0);
     //editor->setMaximum(100);
     QComboBox *editor = new QComboBox(parent);
-    editor->addItem("&define");
-    editor->addItem("&table");
+    editor->addItem("task");
+    editor->addItem("user");
+    editor->addItem("node");
     editor->setCurrentIndex (0);
 
     return editor;
@@ -32,8 +33,9 @@ void TableDlg::setEditorData(QWidget *editor,
     QString str = index.model()->data(index, Qt::EditRole).toString();
     QComboBox *comBox = static_cast<QComboBox*>(editor);
     int v;
-    if (str == "&define")  v=0;
-    if (str == "&table")  v=1;
+    if (str == "task")  v=0;
+    if (str == "user")  v=1;
+    if (str == "node")  v=2;
     comBox->setCurrentIndex(v); 
 }
 
