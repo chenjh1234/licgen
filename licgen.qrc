@@ -4,17 +4,17 @@
 	 <file>images/flowback1.png</file>
 	 <file>images/flowback1.bmp</file>
 	 <file>images/cut.png</file>
-	 <file>images/textflow.png</file>
+	 <file>images/openout.png</file>
 	 <file>images/new.png</file>
 	 <file>images/open.png</file>
 	 <file>images/save.png</file>
 	 <file>images/run.png</file>
 	 <file>images/submit.png</file>
-	 <file>images/constant.png</file>
+	 <file>images/rmrow.png</file>
 	 <file>images/help.png</file>
-	 <file>images/up.png</file>
-	 <file>images/down.png</file>
-	 <file>images/del.png</file>
+	 <file>images/addrow.png</file>
+	 <file>images/copyrow.png</file>
+	 <file>images/pasterow.png</file>
 	 <file>images/about.png</file>
      </qresource>
  </RCC>

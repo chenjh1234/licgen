@@ -3,8 +3,6 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #define stringList csVector<std::string>
-
- 
 #include <QStandardItemModel>
 #include <QModelIndex>
 #include <QPixmap>
@@ -15,10 +13,12 @@ MainWindow::MainWindow():QMainWindow()
 {
     //left dock: up:modules,down:moduleHelp:
 //dock
-    m_w= m_h = 800;
+    m_w=  1500;
+    m_h = 800;
     
     venderDockWidget = new QDockWidget("venderView",this );
     addDockWidget(Qt::LeftDockWidgetArea, venderDockWidget);
+    //venderDockWidget->setFixedWidth(300);
      
 //venderView:
     
@@ -46,9 +46,15 @@ MainWindow::MainWindow():QMainWindow()
     createToolBars();
     createStatusBar();
     setWindowModified(false);//init
-
+    resize(m_w,m_h);
+    venderDockWidget->resize(m_w/2,m_h);
   
     setTitle();
+    setFile(LICFILE_DEFAULT);
+
+  //  venderWin->getData();
+ //   packageWin->getData();
+   
     return; 
   
 }
@@ -57,7 +63,7 @@ void MainWindow::setTitle()
   
     QString str;
     str = "";
-    str = str + APP_NAME + "-"+APP_VERSION +"-"+ __DATE__+"-";
+    str = str + APP_NAME + "-"+APP_VERSION +"-"+ __DATE__ ;
     
     setWindowTitle(str);
     qDebug() << "title = " << str;
@@ -65,97 +71,108 @@ void MainWindow::setTitle()
 }
   
 
-void MainWindow::slotTextFlow()
-{
-  
-}
-    
+     
 void MainWindow::closeEvent(QCloseEvent *event)
 
 {
+    qDebug() << " main win downo";
+
  
         writeSettings();
         event->accept();
+        qDebug() << " main win down";
     
 }
  
 void MainWindow::newFile()
 {
-    if (maybeSave()) 
-    {
-        // do somthing:
-        setWindowModified(false);//new
-        //setCurrentFile("");
-    }
+    setFile(LICFILE_DEFAULT);
 }
 
 void MainWindow::open()
 {
-    #if 0
+     
     int i;
     QString strt,strd,strf,str;
-    strf = "*.flow";
-    strt = "Open flow file";
-    strd = theApp->m_doc->m_flowHome;
-    if (strd.isEmpty()) 
-    {
-        strd = flowpath;
-    }
-    //qDebug() << "flowpath=" <<flowpath;
-    if (maybeSave()) {
-        QString fileName = QFileDialog::getOpenFileName(this,strt,strd,strf);
-        if (!fileName.isEmpty())
-            loadFile(fileName);
+    strf = "Lic file (*.lic );; All file (*.*)";
+    
+    strt = "Open lic file";
+    strd = theApp->m_doc->m_licHome;
+    
+   
+    QString fileName = QFileDialog::getOpenFileName(this,strt,strd,strf);
+    if (fileName.isEmpty()) return;
+            
+    QFileInfo fi(fileName);
+    i = fileName.lastIndexOf("/");
+    str = fileName.left(i+1);
+    theApp->m_doc->m_licHome = str;// remember the last set
 
-        QFileInfo fi(fileName);
-        i = fileName.lastIndexOf(SLASH);
-        str = fileName.left(i+1);
-        flowpath = str;// remember the last set
-        qDebug() << "flowpath=" <<flowpath << str;
+    setFile(fileName);         
+}
+ 
+int  MainWindow::setFile(QString file)
+{
+    int i;
+    DOC->m_filename = file;
+
+    i = DOC->setFile(file);
+    qDebug() << "i = " << i;
+    if (i <=0) 
+    {
+        ST(file + " file open Error");
+        return i;
     }
-    setTitle();
-    #endif
+    else
+        ST(file + " file open OK");
+  
+    venderWin->setData();
+    packageWin->setData();
+
+    return i;
 }
 
 bool MainWindow::save()
 {
+    bool b;
     
-    //return true;
-    if (theApp->m_doc->m_filename.isEmpty()) 
+    if (DOC->m_fileOut.isEmpty()) 
     {
-        return saveAs();
-    } else 
+        b = saveAs();
+    } 
+    else 
     {
-        return saveFile(theApp->m_doc->m_filename);
+        b =  saveFile(DOC->m_fileOut);
     }
+    qDebug() << "save =" << b;
+    return b;
 }
 
 bool MainWindow::saveAs()
 {
-    #if 0
+    bool b;
     QString strt,strd,strf,str;
-    strf = "*.flow";
-    strt = "save flow file";
-    strd = theApp->m_doc->m_flowHome;
-    //qDebug() << "flowHome = " << strd;
-    if (strd.isEmpty()) 
-    {
-        strd = flowpath;
-    }
-
+    strf = "*.lic";
+    strt = "save license file";
+    strd = theApp->m_doc->m_licHome;
+  
     QString fileName = QFileDialog::getSaveFileName(this,strt,strd,strf);
     if (fileName.isEmpty())
+    {
+        ST("No File spcified");
         return false;
+    }
     QFileInfo fi(fileName);
 
-    QString ext = "flow";
+    QString ext = "lic";
     if (fi.suffix() != ext) 
     {
         fileName = fileName +"."+ext;
     }
-    return saveFile(fileName);
-    #endif
-    return true;
+    DOC->m_fileOut = fileName;
+    b =  saveFile(fileName);
+    qDebug() << "save =" << b;
+    return b;
 }
  
 void MainWindow::about()
@@ -172,16 +189,21 @@ void MainWindow::about()
  
 void MainWindow::createActions()
 {
-    //open
+    //new
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Create a new file"));
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
- 
+
     openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
+ 
+    openOutAct = new QAction(QIcon(":/images/openout.png"), tr("&OpenOut..."), this);
+    //openOutAct->setShortcuts(QKeySequence::Open);
+    openOutAct->setStatusTip(tr("Open output"));
+    connect(openOutAct, SIGNAL(triggered()), this, SLOT(openOut()));
  
 
     saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
@@ -199,6 +221,28 @@ void MainWindow::createActions()
  
     exitAct->setStatusTip(tr("Exit the application"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
+    // edit:
+    addRowAct = new QAction(QIcon(":/images/addrow.png"), tr("&AddRow"), this);
+    //addRowAct->setShortcuts(QKeySequence::Save);
+    addRowAct->setStatusTip(tr("append a row"));
+    connect(addRowAct, SIGNAL(triggered()), this, SLOT(addRow()));
+
+    rmRowAct = new QAction(QIcon(":/images/rmrow.png"), tr("&RmRow"), this);
+    //addRowAct->setShortcuts(QKeySequence::Save);
+    rmRowAct->setStatusTip(tr("remove the last row "));
+    connect(rmRowAct, SIGNAL(triggered()), this, SLOT(rmRow()));
+
+     copyRowAct = new QAction(QIcon(":/images/copyrow.png"), tr("&CopyRow"), this);
+    //addRowAct->setShortcuts(QKeySequence::Save);
+    copyRowAct->setStatusTip(tr("copy the selected row"));
+    connect(copyRowAct, SIGNAL(triggered()), this, SLOT(copyRow()));
+
+
+    pasteRowAct = new QAction(QIcon(":/images/pasterow.png"), tr("&PasteRow"), this);
+   //addRowAct->setShortcuts(QKeySequence::Save);
+   pasteRowAct->setStatusTip(tr("paste the selected row "));
+   connect(pasteRowAct, SIGNAL(triggered()), this, SLOT(pasteRow()));
+
  
 //help
 
@@ -226,9 +270,18 @@ void MainWindow::createActions()
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addSeparator();
+    fileMenu->addSeparator();
+    fileMenu->addAction(openOutAct);
+    fileMenu->addSeparator();
     
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
+
+    editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->addAction(addRowAct);
+    editMenu->addAction(rmRowAct);
+    editMenu->addAction(copyRowAct);
+    editMenu->addAction(pasteRowAct);
   
  
  
@@ -246,7 +299,18 @@ void MainWindow::createToolBars()
     fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
+     fileToolBar->addAction(openOutAct);
     //fileToolBar->addAction(textFlowAct);
+
+    editToolBar = addToolBar(tr("Edit"));
+    editToolBar->addAction(addRowAct);
+    editToolBar->addAction(rmRowAct);
+    editToolBar->addAction(copyRowAct);
+    editToolBar->addAction(pasteRowAct);
+
+     helpToolBar = addToolBar(tr("Help"));
+      helpToolBar->addAction(helpAct);
+     helpToolBar->addAction(aboutAct);
  
     qDebug() << "create toolbar OK";
     return;
@@ -260,21 +324,24 @@ void MainWindow::createStatusBar()
 
 void MainWindow::readSettings()
 {
-    QSettings settings(ORG_NAME, APP_NAME);
-    QString str = settings.value("flow").toString();
-    theApp->m_doc->m_filename =str; 
+    //QSettings settings(ORG_NAME, APP_NAME);
+    //QString str = settings.value("flow").toString();
+    //theApp->m_doc->m_filename =str; 
  
 }
 void MainWindow::writeSettings()
 {
+    #if 0
     QString str;
     QSettings settings(ORG_NAME,APP_NAME);
     str = QString("\"") + theApp->m_doc->m_filename + QString("\"");
     settings.setValue("flow", theApp->m_doc->m_filename);
+    #endif
 }
 
 bool MainWindow::maybeSave()
 { 
+    #if 0
     if ( isWindowModified ()) 
     {
         QMessageBox::StandardButton ret;
@@ -287,28 +354,39 @@ bool MainWindow::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     } 
+    #endif
     return true;
-}
-void MainWindow::loadFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return;
-    }
-    // start:
-  
-    
 }
  
 
 bool MainWindow::saveFile(const QString &fileName)
 {
-     
+
+    //return true;
+    int i;
+    LLicFile *lfile;
+    venderWin->getData();
+    packageWin->getData();
+
+    lfile = &(DOC->licFile);
+    LLicEncrypt lic;
+    lic.setLicFile(lfile);
+    i = lic.createKey();
+    if(i <0)
+    {
+        msg(lic._err);
+        return false;
+    }
+    else
+    {
+        DOC->licFile.writeFile(DOC->m_fileOut);
+        fileText(DOC->m_fileOut);
+    }    
     return true;
+}
+void MainWindow::openOut()
+{
+    fileText(DOC->m_fileOut,DOC->m_fileOut);
 }
 QString MainWindow::strippedName(const QString &fullFileName)
 {
@@ -318,7 +396,7 @@ QString MainWindow::strippedName(const QString &fullFileName)
         
 void MainWindow::resizeEvent ( QResizeEvent * event )
 {
-    int w,h;
+    //int w,h;
     m_w = event->size().width();
     m_h = event->size().height();
     //flowMode();
@@ -327,10 +405,71 @@ void MainWindow::slotHelp()
 {
     QString cmd,str;
     char *ch;
-    cmd = "showpdf ";
-    //cmd = cmd+ getDocDir()+ SLASH + "flowpad.pdf";
+    cmd = CMD_SHOWPDF;
+    cmd = cmd+  DOC->docPath()+ "/" + APP_NAME+".pdf";
         //cmd = "ls";
     qDebug() << "cmd=" <<cmd;
-    //hrun.start(cmd);
+    hrun.start(cmd);
 
+}
+void MainWindow::addRow()
+{
+    qDebug() <<" addRow";
+    int i;
+    i = packageWin->addRow();
+  
+}
+void MainWindow::rmRow()
+{
+   // qDebug() <<" rmRow";
+        int i;
+     if(! ask("this will remove the last row of the table , are you sure???")) return;
+    i = packageWin->rmRow();
+    QString str;
+     if (i == -1 ) str = "Error: only one row left";
+     else str ="OK";
+     ST(str);
+
+}
+void MainWindow::copyRow()
+{
+   // qDebug() <<" copyRow";
+        int i;
+    i = packageWin->copyRow();
+     QString str;
+     if (i <0 ) str = "Error: No selected row";
+     else str ="OK";
+     ST(str);
+}
+void MainWindow::pasteRow()
+{
+    //qDebug() <<" pasteRow";
+     int i;
+     if(! ask("this will replace the cantains of selected row, are you sure???")) return;
+    i = packageWin->pasteRow();
+     QString str;
+     if (i == -1 ) str = "Error: No copyed row";
+     else if (i <0 ) str = "Error: No selected row";
+     else str ="OK";
+     ST(str);
+}
+bool MainWindow::ask(QString str,QString title)
+{
+    int id;
+    id = QMessageBox::question(this,title,str);
+    if (id ==QMessageBox::Yes) 
+        return true;
+    return false;
+}
+
+void MainWindow::msg(QString str,QString title)
+{
+     QMessageBox::information(this,title,str);
+}
+void MainWindow::fileText(QString file,QString title)
+{
+    LFileDate fd;
+    QString str;
+    str = fd.getText(file);
+     QMessageBox::information(this,title,str);
 }

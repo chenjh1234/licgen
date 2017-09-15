@@ -17,11 +17,14 @@ win32{
        	        
 }
 
-LIBS += -L../property/Debug\        
+LIBS += -L$(HOME)/lib\   
+	-lssl\
          -lproperty
 
 INCLUDEPATH += .\
          ../property\
+         ../licwork\
+         ../crypt\
          ../property/include
 
  
@@ -29,16 +32,31 @@ INCLUDEPATH += .\
 
 RESOURCES  += \
 	licgen.qrc
-SOURCES += licgen.cpp\
-                tabledlg.cpp\
+SOURCES += ../licwork/LInfoMng.cpp\
+                ../licwork/LLicFile.cpp\
+                ../licwork/LPackageMng.cpp\
+                ../licwork/LVenderMng.cpp\
+                ../licwork/LLicEncrypt.cpp\
+                ../licwork/LFileDate.cpp\
+                ../crypt/LEncrypt.cpp \ 
+                licgen.cpp\
+		tableview.cpp\
+                tableitem.cpp\
                 licapp.cpp\
                 licdoc.cpp\
                 venderwin.cpp\
                 packagewin.cpp\
 		mainwindow.cpp	
 
-HEADERS += \
-                tabledlg.h\
+HEADERS +=  ../licwork/LInfoMng.h\
+                ../licwork/LLicFile.h\
+                ../licwork/LPackageMng.h\
+                ../licwork/LVenderMng.h\
+                ../licwork/LLicEncrypt.h\
+                ../licwork/LFileDate.h\
+                ../crypt/LEncrypt.h \ 
+                tableitem.h\
+		tableview.h\
                 licapp.h\
                 licdoc.h\
                 venderwin.h\

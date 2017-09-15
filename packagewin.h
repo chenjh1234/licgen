@@ -6,10 +6,14 @@
 #include <QHeaderView>
 #include <QGraphicsView>
 #include <QStandardItemModel>
+#include <QStandardItem>
 #include <QLabel>
 #include <QLineEdit>
 #include <QTableView>
-#include "tabledlg.h"
+#include "tableitem.h"
+#include "tableview.h"
+ 
+
 class PackageWin :public QGraphicsView
 {
 Q_OBJECT
@@ -18,11 +22,26 @@ public:
     PackageWin(QWidget *p);
     ~PackageWin();
     void init();
-    QTableView *tableView;
+    void setData();
+    void  setData(int x, int y,QString v);
+
+    void getData();
+    QString getData(int x,int y);
+    void clear();
+
+    int addRow();
+    int rmRow();
+    int copyRow();
+    int pasteRow();
+
+    TableView *tableView;
     QGridLayout *gridLayout;
 
     QStandardItemModel *model;
     TableDlg *dlg;
+    QStringList rowList;
+
+
 
 
  

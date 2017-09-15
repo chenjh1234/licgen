@@ -11,7 +11,7 @@ int main (int argc, char *argv[])
     LicApp  app(argc, argv);
     app.setOrganizationName(ORG_NAME);
     app.setApplicationName(APP_NAME);
- 
+  
     LicDoc doc;
     app.m_doc =&doc;
      

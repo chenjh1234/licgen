@@ -2,7 +2,7 @@
 #define LIC_APP_H
 
 #include <QApplication>
-#include "mainwindow.h"
+//#include "mainwindow.h"
 #include "licdoc.h"
 class LicApp;
 class MainWindow;
