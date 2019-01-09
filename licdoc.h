@@ -12,7 +12,9 @@ using namespace std;
 #define APP_VERSION "1.001"
 #define APP_DATE " 2017.10.1 "
 //
-#define CMD_SHOWPDF "evince "
+#define LIC_ROOT_PATH "LIC_ROOT_PATH" //  licdatadir 
+#define LIC_FILE_PATH "file" //  $LIC_ROOT/file
+#define CMD_SHOWPDF "showpdf "
 
 #define MAX_PACKAGES 10
 #define PACKAGE_KEYS 7
@@ -34,6 +36,7 @@ public:
     QString m_fileOut;
     QString m_licHome;
     QString docPath();
+    QString  rootDir();
 
     LLicFile licFile;
     int _numPackage;
